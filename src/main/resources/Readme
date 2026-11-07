@@ -1,0 +1,4 @@
+Map<String, Long> accountCounts = transactions.stream().collect(Collectors.groupingBy(row -> row[3],Collectors.counting()));
+
+ accountCounts.entrySet().stream().filter(entry -> entry.getValue().equals(accountCounts.values().stream().max(Long::compareTo).orElse(0L)))
+                .forEach(entry -> System.out.println( "Top account: " + entry.getKey() + " - " + entry.getValue() + " transactions"));

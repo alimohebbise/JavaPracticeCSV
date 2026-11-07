@@ -1,0 +1,73 @@
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+// کد باید با استفاده از آبچکت اوذینتد انجام بشود
+public class Main {
+    public static void main(String[] args) throws Exception {
+
+        InputStream input = Main.class
+                .getResourceAsStream("/sample_transactions.csv");
+
+        if (input == null) {
+            System.out.println("CSV file not found!");
+            return;
+        }
+
+        List<String[]> transactions;
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(input))) {
+
+            transactions = reader.lines()
+                    .skip(1)
+                    .map(line -> line.split(","))
+                    .collect(Collectors.toList());
+        }
+
+        // 1. مجموع مبالغ تراکنش ها
+        long totalAmount = transactions.stream()     // تعریف متغیر -  List<String[]> transactions;21 - stream پردازش کردن
+                .mapToLong(row -> Long.parseLong(row[0])) //
+                .sum();
+
+        System.out.println("Total amount: " + totalAmount); //  اولین چاپی ما
+
+
+        // 2. تعداد تراکنش های هر حساب مبدا
+        Map<String, Long> accountCounts = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        row -> row[3],
+                        Collectors.counting()
+                ));
+
+        accountCounts.entrySet().stream()                   // Map<String, Long> accountCounts = transactions.stream()
+                .filter(entry -> entry.getValue().equals(
+                        accountCounts.values().stream()
+                                .max(Long::compareTo).orElse(0L)))
+                .forEach(entry -> System.out.println( // دومین چاپی ما
+                        "Top account: " + entry.getKey()
+                                + " - " + entry.getValue() + " transactions"
+                ));
+
+
+        // 3. تعداد تراکنش های هر نوع
+        Map<String, Long> typeCounts = transactions.stream()
+                .collect(Collectors.groupingBy(  // یعنی براساس ستون چهارم گروه بندی کن
+                        row -> row[5],   // استفاده از lambda --- ---------ما ستون چهارم را فقط باهاش کار داریم از جدول exel
+                        Collectors.counting()         //کلاس Collectors --- متد counting  ----------------
+                )); // برو از کلاس آورندگان و متد شمارنده را انتخاب کن
+
+        typeCounts.entrySet().stream()  //
+                .filter(entry -> entry.getValue().equals(
+                        typeCounts.values().stream()
+                                .max(Long::compareTo).orElse(0L)))
+                .forEach(entry -> System.out.println(  // چاپ سومی
+                        "Top type: " + entry.getKey()
+                                + " - " + entry.getValue() + " transactions"
+                ));
+    }
+}
